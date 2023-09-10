@@ -8,7 +8,7 @@ def mysql_connection():
         user="root",
         password="root@123",
         port='3306',
-        database='youtube_datasets')
+        database='youtube_datasets') ## old DB name is youtube_datasets
     return mydb
 mydb=mysql_connection()
 #mycursor.execute('show tables')

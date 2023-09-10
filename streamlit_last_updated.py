@@ -68,11 +68,30 @@ def main():
     with st.sidebar:
         selected = option_menu(
             menu_title="Project Menu",
-            options=["About the Project", "Data Collection", "Select and Store", "Migration of Data", "Data Analysis"],
+            options=["About the Project", "Database Creation","Data Collection", "Select and Store", "Migration of Data", "Data Analysis","Database Deletion"],
             default_index=0
         )
     if selected == "About the Project":
         project_decription()
+    elif selected == "Database Creation":
+        try:
+            mysql1 = mysql_connection()
+            p = mysql1.cursor()
+            p.execute("""create table IF NOT EXISTS channel(channel_id varchar(255), channel_name varchar(255), channel_type varchar(255),
+            channel_views int, channel_description text, channel_status varchar(255), no_of_playlists int, primary key(channel_id))""")
+            p.execute("""create table IF NOT EXISTS playlist(playlist_id varchar(255), playlist_name varchar(255), no_of_videos int,
+            channel_id varchar(255), primary key(playlist_id), foreign key(channel_id) references channel(channel_id))""")
+            p.execute("""create table IF NOT EXISTS video(video_id varchar(255), video_name varchar(255), video_description text, published_date datetime,
+            view_count int, like_count int, dislike_count int, favorite_count int, comment_count int, duration int, 
+            thumbnail varchar(255), caption_status varchar(255), category_type varchar(255), actual_comment_count int,
+            playlist_id varchar(255), primary key(video_id), foreign key(playlist_id) references playlist(playlist_id))""")
+            p.execute("""create table IF NOT EXISTS comment(comment_id varchar(255), comment_text text, comment_author varchar(255),
+            comment_published_date datetime, video_id varchar(255), primary key(comment_id), foreign key(video_id) references video(video_id))""")
+            mysql1.commit()
+            st.success("Database Created")
+        except:
+            st.write("error")
+            pass
     elif selected == "Data Collection":
         data_collection()
     elif selected == "Select and Store":
@@ -109,7 +128,7 @@ def main():
                 insert_data_in_tables(mysql1,result)
             st.success("Successfully Data Migrated in Mysql")
 
-    else:
+    elif selected == "Data Analysis":
         option_list = ['1. What are the names of all the videos and their corresponding channels?',
                        '2. Which channels have the most number of videos, and how many videos do they have?',
                        '3. What are the top 10 most viewed videos and their respective channels?',
@@ -292,6 +311,18 @@ def main():
         except:
             pass
             #print('something wrong')
-
+    else:
+        try:
+            mysql1 = mysql_connection()
+            p = mysql1.cursor()
+            p.execute("drop table comment")
+            p.execute("drop table video")
+            p.execute("drop table playlist")
+            p.execute("drop table channel")
+            mysql1.commit()
+            st.success("Mysql Database Deleted")
+        except:
+            st.error('connection error or database not exist')
+            pass
 
 main()
